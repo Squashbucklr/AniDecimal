@@ -1,0 +1,17 @@
+/* nostyle preset */
+.list-table {display: flex;flex-direction: column}
+.list-table-data {position: relative}
+tbody tr {display: flex;align-items: center;border-bottom: #444 1px solid}
+.list-table .list-table-data .data, .list-table .list-table-header .header-title
+{border-bottom: 0px;padding: 0px;line-height: 36px}
+.status {height: 70px;flex-basis: 6px}
+.number {flex-basis: 32px}
+.image {flex-basis: 50px}
+.title {flex: 1 0 0px}
+.score {flex-basis: 67px}
+.type {flex-basis: 62px}
+.progress {flex-basis: 68px}
+.list-table .list-table-data .data.tags {flex-basis: 122px;line-height: 15px}
+.data.score a.link {opacity: 0;}
+.data.tags:before
+{pointer-events: none;position: absolute;right: 270px;top: 26px;width: 30px;text-align: center;}

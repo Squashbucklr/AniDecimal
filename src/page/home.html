@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                text-align: center;
+            }
+
+            .content {
+                max-width: 800px;
+                margin-left: auto;
+                margin-right: auto;
+            }
+
+            code {
+                display: block;
+                background-color: #EEE;
+                padding: 10px 20px;
+                border-radius: 10px;
+                font-size: 14px;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="content">
+            <h1>Welcome to AniDecimal!</h1> 
+            <p>AniDecimal takes your decimal scores from your AniList anime list and generates a css file so you can display them on your MAL anime list.</p>
+            <h3>Features</h3>
+            <p>Custom decimal scores - configure decimal display method and display favorites too</p>
+            <p>Sorting -  the decimal scores are able to be correctly sorted.</p>
+            <h3>Limitations</h3>
+            <p>To limit file size, sorting is only enabled for "All Anime", "Currently Watching", and "Completed" list status, and any other filters disable decimal sorting (172 bytes per entry per query config). If custom sorting is disabled, sorting by score will still work, but based off of the MAL score instead of the AniList score, so decimals may get rearranged.</p>
+            <h3>Options</h3>
+            <form id="generate">
+                <label>AniList Username (score source)</label>
+                <input type="text" name="alusername" /><br/>
+                <label>MyAnimeList Username (for displaying scores)</label>
+                <input type="text" name="malusername" /><br/>
+                <label>nostyle - enable if you do not use a custom list</label>
+                <input type="checkbox" name="nostyle" /><br/>
+                <label>target - selector to add score content</label>
+                <select name="target" >
+                    <option value="datatagsdivbefore">datatagsdivbefore</option>
+                </select><br/>
+                <label>pointzero - add .0 to flat scores 1 - 9</label>
+                <input type="checkbox" name="pointzero" /><br/>
+                <label>tenpointzero - add .0 to flat 10</label>
+                <input type="checkbox" name="tenpointzero" /><br/>
+                <label>favcolor - change color of favorites score (hex code without #)</label>
+                <input type="text" style="width: 80px;" name="favcolor" /><br/>
+                <input type="submit" value="Generate" />
+            </form>
+            <script>
+                let form = document.getElementById('generate');
+                form.addEventListener('submit', e => {
+                    e.preventDefault();
+                    let formData = new FormData(form);
+                    let params = {};
+                    let malusername = "";
+                    let alusername = "";
+                    for (let pair of formData.entries()) {
+                        if(pair[0] === "malusername") {
+                            malusername = pair[1];
+                        } else if (pair[0] === "alusername") {
+                            alusername = pair[1];
+                        } else if (pair[1] && pair[1].length) {
+                            params[pair[0]] = pair[1] === "on" ? true : pair[1];
+                        }
+                    }
+                    let query = new URLSearchParams(params).toString();
+                    let imp = "@\\import \"" + window.location.origin + '/css/' + alusername + "/" + malusername + "/scores.css?" + query + "\";"
+                    document.getElementById('import').innerText = imp;
+                }); 
+            </script>
+            <h3>Generated List Style Import</h3>
+            <code id="import">@\import "???";</code>
+            <h3>Troubleshooting</h3>
+            <p>If you are using nostyle and your scores are not properly positioned in their column, add the following code to your list style:</p>
+            <code>
+data.tags:before {
+    right: 100px;
+}
+            </code>
+            <p>adjust 100 until it is in the right position</p>
+        </div>
+    </body>
+</html>
