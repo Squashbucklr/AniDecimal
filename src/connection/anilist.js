@@ -17,6 +17,7 @@ module.exports.getList = async function(username) {
                     favourites {
                         anime (page: 1, perPage: 10) {
                             nodes {
+                                id,
                                 idMal,
                             }
                         }
@@ -28,6 +29,7 @@ module.exports.getList = async function(username) {
                         entries {
                             score (format: POINT_10_DECIMAL),
                             media {
+                                id,
                                 idMal
                             }
                         }

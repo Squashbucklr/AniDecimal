@@ -5,6 +5,9 @@ let targets = Object.freeze({
     "datatagsdivbefore": "datatagsdivbefore"
 });
 
+const links = JSON.parse(fs.readFileSync(path.join(__dirname, './links.json'), 'utf8'));
+const linksKeys = Object.keys(links);
+
 module.exports.gen = async function(req, res) {
     let date_start = new Date();
 
@@ -51,17 +54,37 @@ module.exports.gen = async function(req, res) {
     let malIdToOrder = {};
     
     for (let i = 0; i < aldata.favorites.length; i++) {
-        if (!seenMalIds[aldata.favorites[i].idMal]) {
-            seenMalIds[aldata.favorites[i].idMal] = true;
-            malIdToOrder[aldata.favorites[i].idMal] = 100 + (25 - i); // 25 supported favorites
-        } 
+        // get MAL ids for entry
+        let malIds = [];
+        if (linksKeys.includes(aldata.favorites[i].id + '')) {
+            malIds = links[aldata.favorites[i].id]; 
+        } else {
+            malIds = [aldata.favorites[i].idMal];
+        }
+        
+        for (let j = 0; j < malIds.length; j++) {
+            if (!seenMalIds[malIds[j]]) {
+                seenMalIds[malIds[j]] = true;
+                malIdToOrder[malIds[j]] = 100 + (25 - i); // 25 supported favorites
+            } 
+        }
     }
 
     for (let i = 0; i < aldata.entries.length; i++) {
-        if (!seenMalIds[aldata.entries[i].media.idMal]) {
-            seenMalIds[aldata.entries[i].media.idMal] = true;
-            malIdToOrder[aldata.entries[i].media.idMal] = aldata.entries[i].score * 10;
-        } 
+        // get MAL ids for entry
+        let malIds = [];
+        if (linksKeys.includes(aldata.entries[i].media.id + '')) {
+            malIds = links[aldata.entries[i].media.id]; 
+        } else {
+            malIds = [aldata.entries[i].media.idMal];
+        }
+        
+        for (let j = 0; j < malIds.length; j++) {
+            if (!seenMalIds[malIds[j]]) {
+                seenMalIds[malIds[j]] = true;
+                malIdToOrder[malIds[j]] = aldata.entries[i].score * 10;
+            } 
+        }
     }
 
     for (let i = 0; i < maldata.length; i++) {
