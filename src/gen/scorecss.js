@@ -8,48 +8,7 @@ let targets = Object.freeze({
 const links = JSON.parse(fs.readFileSync(path.join(__dirname, './links.json'), 'utf8'));
 const linksKeys = Object.keys(links);
 
-module.exports.gen = async function(req, res) {
-    let date_start = new Date();
-
-
-
-    // get input options
-
-    const malusername = req.params.malusername;
-    const alusername = req.params.alusername;
-
-    const options = {
-        nostyle: req.query.nostyle == "false" ? false : !!req.query.nostyle,
-        target: req.query.target || targets.datatagsdivbefore,
-        pointzero: req.query.pointzero == "false" ? false : !!req.query.pointzero,
-        tenpointzero: req.query.tenpointzero == "false" ? false : !!req.query.tenpointzero,
-        favcolor: req.query.favcolor || ""
-    }
-
-    // input validation
-    if (!Object.keys(targets).includes(options.target)) {
-        options.target = targets.datatagsdivbefore;
-    }
-
-    let match = /^([[0-9a-fA-F]{3}|[0-9a-fA-F]{4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/.exec(options.favcolor);
-    if (!match) options.favcolor = "";
-
-
-    console.log("\nloading " + alusername + " into " + malusername);
-    console.log("    start:  " + date_start.toLocaleString());
-    
-
-    
-    // get list data
-    let [maldata, aldata] = await Promise.all([
-        require('../connection/myanimelist.js').getList(malusername),
-        require('../connection/anilist.js').getList(alusername)
-    ]); 
-
-
-
-    // assemble order data
-
+function getMalIdToOrder(maldata, aldata) {
     let seenMalIds = {};
     let malIdToOrder = {};
     
@@ -93,6 +52,70 @@ module.exports.gen = async function(req, res) {
             malIdToOrder[maldata[i].anime_id] = maldata[i].score * 10;
         } 
     }
+    return malIdToOrder;
+}
+
+module.exports.data = async function(req, res) {
+    const malusername = req.params.malusername;
+    const alusername = req.params.alusername;
+
+    // get list data
+    let [maldata, aldata] = await Promise.all([
+        require('../connection/myanimelist.js').getList(malusername),
+        require('../connection/anilist.js').getList(alusername)
+    ]); 
+
+    // assemble order data
+    let malIdToOrder = getMalIdToOrder(maldata, aldata);
+
+    res.set('Cache-Control', 'no-store');
+    res.set('Content-Type', 'application/json');
+    res.set('Content-disposition', 'attachment; filename=data.json');
+    res.send(JSON.stringify(malIdToOrder));
+}
+
+module.exports.gen = async function(req, res) {
+    let date_start = new Date();
+
+
+
+    // get input options
+
+    const malusername = req.params.malusername;
+    const alusername = req.params.alusername;
+
+    const options = {
+        nostyle: req.query.nostyle == "false" ? false : !!req.query.nostyle,
+        target: req.query.target || targets.datatagsdivbefore,
+        pointzero: req.query.pointzero == "false" ? false : !!req.query.pointzero,
+        tenpointzero: req.query.tenpointzero == "false" ? false : !!req.query.tenpointzero,
+        favcolor: req.query.favcolor || ""
+    }
+
+    // input validation
+    if (!Object.keys(targets).includes(options.target)) {
+        options.target = targets.datatagsdivbefore;
+    }
+
+    let match = /^([[0-9a-fA-F]{3}|[0-9a-fA-F]{4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/.exec(options.favcolor);
+    if (!match) options.favcolor = "";
+
+
+    console.log("\nloading " + alusername + " into " + malusername);
+    console.log("    start:  " + date_start.toLocaleString());
+    
+
+    
+    // get list data
+    let [maldata, aldata] = await Promise.all([
+        require('../connection/myanimelist.js').getList(malusername),
+        require('../connection/anilist.js').getList(alusername)
+    ]); 
+
+
+
+    // assemble order data
+    let malIdToOrder = getMalIdToOrder(maldata, aldata);
 
 
 
@@ -261,8 +284,9 @@ module.exports.gen = async function(req, res) {
 
 
     // deliver file
-    res.setHeader('Content-Type', 'text/css');
-    res.setHeader('Content-disposition', 'attachment; filename=scores.css');
+    res.set('Cache-Control', 'no-store');
+    res.set('Content-Type', 'text/css');
+    res.set('Content-disposition', 'attachment; filename=scores.css');
     res.send(output);
 
     console.log("    finish: " + date_finish.toLocaleString());
